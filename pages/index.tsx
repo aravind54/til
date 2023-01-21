@@ -1,7 +1,7 @@
 import Head from 'next/head'
 
 const Index = (props: any) => {
-  const posts = props?.data?.data?.map((post) => {
+  const posts = props?.data?.data?.map((post: any) => {
     return {
       content: post?.content,
       user: post?.user,
@@ -18,7 +18,7 @@ const Index = (props: any) => {
       </Head>
       <div className="w-full h-full">
         <div className="w-1/2 mx-auto mt-16">
-          {posts?.map((post) => (
+          {posts?.map((post: any) => (
             <div
               key={post?._id}
               className="w-full p-4 rounded-md mt-2"
@@ -36,7 +36,7 @@ const Index = (props: any) => {
   )
 }
 
-export async function getServerSideProps({ req }) {
+export async function getServerSideProps({ req }: any) {
   try {
     const protocol = req.headers['x-forwarded-proto'] || 'http'
     const res = await fetch(`${protocol}://${req.headers.host}/api/posts`)
