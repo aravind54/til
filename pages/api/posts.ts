@@ -9,15 +9,20 @@ const handler = async (req: any, res: any) => {
         content: text,
         user: user_name,
       })
-      const userCreated = await post.save()
-      console.log(userCreated)
+      await post.save()
       res.status(200).send({
         response_type: 'in_channel',
         text: 'TIL is saved successfully!',
       })
     } else if (req.method === 'GET') {
-      const posts = await Posts.find({})
-      res.status(200).send({ data: posts })
+      const { page, limit } = req.query
+      const totalCount = await Posts.count({})
+      const posts = await Posts.find(
+        {},
+        {},
+        { skip: (Number(page) - 1) * limit, limit: Number(limit) }
+      )
+      res.status(200).send({ data: posts, totalCount })
     }
   } catch (err) {
     console.error(err)

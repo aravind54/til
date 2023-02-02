@@ -1,38 +1,74 @@
-import Head from 'next/head'
+import * as React from 'react'
+// components
+import PaginationContainer from 'components/PaginationContainer/PaginationContainer'
+import ReactVirtualizedAutoSizer from 'react-virtualized-auto-sizer'
 
-const Index = (props: any) => {
-  const posts = props?.data?.data?.map((post: any) => {
+const Index = ({ data: { data, totalCount } }: any) => {
+  const posts = data?.map((post: any) => {
     return {
       content: post?.content,
       user: post?.user,
-      data: post?.data,
     }
   })
+
+  const [items, setItems] = React.useState(posts || [])
+  const [currentPage, setCurrentPage] = React.useState(1)
+  const [isLoading, setIsLoading] = React.useState(false)
+  const [height, setHeight] = React.useState(0)
+  const [width, setWidth] = React.useState(0)
+  const hasNextPage = totalCount > items?.length
+
+  const loadNextPage = async () => {
+    try {
+      setIsLoading(true)
+      const { origin } = window.location
+      const res = await fetch(
+        `${origin}/api/hosts?page=${currentPage + 1}&limit=${20}`
+      )
+      const data = await res?.json()
+
+      const posts = data?.data?.map((post: any) => ({
+        content: post?.content,
+        user: post?.user,
+      }))
+      setItems([...items, ...posts])
+      setCurrentPage(currentPage + 1)
+      setIsLoading(false)
+    } catch (err) {
+      console.error(err)
+    }
+  }
+
+  console.log(items)
+  console.log(height)
+  console.log(width)
+
   return (
-    <>
-      <Head>
-        <title>TIL</title>
-        <meta name="description" content="Today I Learned" />
-        <meta name="viewport" content="width=device-width, initial-scale=1" />
-        <link rel="icon" href="/favicon.ico" />
-      </Head>
-      <div className="w-full h-full">
-        <div className="w-1/2 mx-auto mt-16">
-          {posts?.map((post: any) => (
-            <div
-              key={post?._id}
-              className="w-full p-4 rounded-md mt-2"
-              style={{
-                border: '1px solid #e0e0e0',
-              }}
-            >
-              <div>{post?.content}</div>
-              <div className="w-fit ml-auto">{post?.user}</div>
-            </div>
-          ))}
+    <div className="">
+      <div className="flex">
+        <div className="flex-auto h-screen">
+          <ReactVirtualizedAutoSizer>
+            {({ width: autoSizeWidth, height: autoSizeHeight }) => {
+              setWidth(autoSizeWidth)
+              setHeight(autoSizeHeight)
+              return (
+                <div className="w-1/2 mx-auto mt-16">
+                  <PaginationContainer
+                    hasNextPage={hasNextPage}
+                    items={items}
+                    loadNextPage={loadNextPage}
+                    isNextPageLoading={isLoading}
+                    width={width}
+                    height={height}
+                    totalCount={totalCount}
+                  />
+                </div>
+              )
+            }}
+          </ReactVirtualizedAutoSizer>
         </div>
       </div>
-    </>
+    </div>
   )
 }
 
